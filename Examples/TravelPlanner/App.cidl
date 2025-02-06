@@ -1,0 +1,11 @@
+component app implements app
+
+component travelplanner
+component user
+component service
+
+assembly: travelplanner.confirm_release_ccd -> user.confirm_release_ccd
+assembly: travelplanner.get_flight_offers -> service.get_flight_offers
+assembly: travelplanner.book -> service.book
+assembly: user.book -> travelplanner.book
+assemnly: user.get_flightoffers -> travelplanner.get_flight_offers

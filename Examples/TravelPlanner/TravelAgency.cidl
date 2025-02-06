@@ -1,0 +1,11 @@
+component travelagency implements travelagency
+
+provide
+precondition: request L 
+postcondition: result L
+FlightOffers get_flightoffers(Request request)
+
+require
+precondition: request L
+postcondition: result L
+FlightOffers get_flightoffers(Request request)

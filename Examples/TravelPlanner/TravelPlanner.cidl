@@ -1,0 +1,28 @@
+component travelplanner implements travelplanner
+
+component ccd
+component request
+
+provide
+precondition: request L
+postcondition: request L
+void get_flight_offers(Request request)
+
+precondition: offer L airline L ccd H
+postcondition: offer L airline L ccd H
+void book_(FlightOffer offer Airline airline CCD ccd)
+
+require
+precondition: request L
+postcondition: request L res L
+FlightOffers get_flight_offers(Request request)
+
+precondition: offer H airline L ccd H
+postcondition: offer H airline L ccd H
+void book_(FlightOffer offer Airline airline CCD ccd)
+
+precondition: airline L ccd S
+postcondition: airline L ccd H
+CCD confirm_release_ccd(Airline airline CCD ccd)
+
+delegateR: ccd.confirm_release -> confirm_release

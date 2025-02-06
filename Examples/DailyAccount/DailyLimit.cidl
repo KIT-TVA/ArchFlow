@@ -1,0 +1,6 @@
+component dailylimit implements limit
+
+provide
+precondition: 
+postcondition: res L
+int get_limit()

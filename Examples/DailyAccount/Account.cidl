@@ -1,0 +1,12 @@
+component account implements account
+
+provide
+precondition: x H
+postcondition: res H
+bool update_a(int x)
+
+require
+precondition:
+postcondition: res H
+int get_limit()
+

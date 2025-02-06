@@ -1,0 +1,17 @@
+component service implements service
+
+component airline
+component travelagency
+component flightoffer
+
+provide
+precondition: request L
+postcondition: request L
+void get_flight_offers(Request request)
+
+precondition: offer L airline L ccd H
+postcondition: offer L airline L ccd H
+void book_(FlightOffer offer Airline airline CCD ccd)
+
+assembly: travelagency.get_flight_offers -> airline.get_flight_offers
+delegateP: book_ -> airline.book_

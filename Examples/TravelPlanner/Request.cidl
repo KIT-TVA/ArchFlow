@@ -1,0 +1,6 @@
+component request implements request
+
+provide
+precondition:
+postcondition: res H
+Request get_request()

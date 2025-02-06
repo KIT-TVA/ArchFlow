@@ -1,0 +1,13 @@
+component dailyaccount implements dailyaccount
+
+component account
+component dailylimit
+
+provide
+precondition: x H
+postcondition: res H
+bool update_a(int x)
+
+assembly: account.get_limit -> dailylimit.get_limit
+delegate: update_a -> account.update_a
+

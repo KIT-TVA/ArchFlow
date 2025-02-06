@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.layout.StackPane?>
+<StackPane fx:id="container" xmlns:fx="http://javafx.com/fxml"
+>
+    <Rectangle
+            fx:id="rectangle"
+            viewOrder="5"
+            fill="snow"
+            stroke="crimson"
+            onMouseClicked="#editSpec"
+    >
+    </Rectangle>
+    <Label fx:id="name" >
+    </Label>
+    <cursor>
+        <Cursor fx:constant="MOVE" />
+    </cursor>
+</StackPane>

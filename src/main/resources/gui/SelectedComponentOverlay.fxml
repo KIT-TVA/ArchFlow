@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.*?>
+<?import javafx.scene.shape.*?>
+<Group
+        xmlns="http://javafx.com/javafx"
+        xmlns:fx="http://javafx.com/fxml"
+        fx:controller="gui.components.SelectedComponentOverlay"
+        stylesheets="@style/SelectedComponentOverlay.css"
+>
+    <Rectangle fx:id="topLine" height="5" onMousePressed="#topLinePressed" onMouseDragged="#topLineDragged"
+               onMouseReleased="#topLineReleased">
+        <cursor>
+            <Cursor fx:constant="V_RESIZE"/>
+        </cursor>
+    </Rectangle>
+    <Rectangle fx:id="leftLine" width="5" onMousePressed="#leftLinePressed" onMouseDragged="#leftLineDragged"
+               onMouseReleased="#leftLineReleased">
+        <cursor>
+            <Cursor fx:constant="H_RESIZE"/>
+        </cursor>
+    </Rectangle>
+    <Rectangle fx:id="bottomLine" height="5" onMousePressed="#bottomLinePressed" onMouseDragged="#bottomLineDragged"
+               onMouseReleased="#bottomLineReleased">
+        <cursor>
+            <Cursor fx:constant="V_RESIZE"/>
+        </cursor>
+    </Rectangle>
+    <Rectangle fx:id="rightLine" width="5" onMousePressed="#rightLinePressed" onMouseDragged="#rightLineDragged"
+               onMouseReleased="#rightLineReleased">
+        <cursor>
+            <Cursor fx:constant="H_RESIZE"/>
+        </cursor>
+    </Rectangle>
+
+    <Group managed="false">
+        <Polygon fx:id="topTriangle" styleClass="arrow" fill="aqua" onMouseClicked="#topArrowClicked">
+        </Polygon>
+        <Polygon fx:id="leftTriangle" styleClass="arrow" rotate="-90" fill="aqua" onMouseClicked="#leftArrowClicked">
+        </Polygon>
+        <Polygon fx:id="rightTriangle" styleClass="arrow" rotate="90" fill="aqua" onMouseClicked="#rightArrowClicked">
+        </Polygon>
+        <Polygon fx:id="bottomTriangle" styleClass="arrow" rotate="180" fill="aqua"
+                 onMouseClicked="#bottomArrowClicked">
+        </Polygon>
+    </Group>
+</Group>

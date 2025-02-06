@@ -1,0 +1,6 @@
+component ccd implements ccd
+
+provide
+precondition: airline L ccd S
+postcondition: airline L ccd H
+CCD confirm_release_ccd(Airline airline CCD ccd)

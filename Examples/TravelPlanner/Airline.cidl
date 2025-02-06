@@ -1,0 +1,6 @@
+component airline implements airline
+
+provide
+precondition:
+postcondition: res L
+Airline get_airline()

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import gui.views.ComponentList?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="gui.views.MainLayout"
+            prefHeight="400.0" prefWidth="600.0">
+    <top>
+    <MenuBar stylesheets="@style/MenuBar.css" >
+    <menus>
+    <Menu text="File">
+        <items> 
+        <MenuItem fx:id="loadSpec" text="Load Specificataion"/> 
+        <MenuItem fx:id="saveSpec" text="Save Specification"/>
+        <MenuItem fx:id="saveDiagram" text="Save Diagram" onAction="#saveDiagram"/>
+        <MenuItem fx:id="loadDiagram" text="Load Diagram" onAction="#loadDiagram" />
+        </items>
+    </Menu>
+
+        <Menu text="Generate">
+            <MenuItem fx:id="generateJava" text="Generate Java" onAction="#generateJava"/>
+        </Menu>
+    
+    <Menu text="Check">
+        <items>
+            <MenuItem fx:id="checkComposite" text="Check Composition"/>
+        </items> 
+    </Menu>
+    
+    <Menu text="Help">
+    </Menu>
+    
+    </menus> 
+    
+    </MenuBar>
+
+    </top>
+    
+    <center>
+    <TabPane stylesheets="@style/TabPane.css"> <tabs> <Tab text="Component Model">
+        <SplitPane stylesheets="@style/SplitPane.css" >
+            <Pane>
+                <VBox >
+                    <ComponentList fx:id="componentList" viewOrder="0" />
+                    <AnchorPane stylesheets="@style/TabPane.css" viewOrder="1">
+                        <fx:include source="ComponentCanvas.fxml" fx:id="canvas"/>
+                    </AnchorPane>
+                </VBox>
+            </Pane>
+            <SplitPane orientation="VERTICAL">
+            <TextArea fx:id="spec">
+            </TextArea>
+                <TextArea fx:id="errors">
+                </TextArea>
+            </SplitPane>
+        </SplitPane> 
+        </Tab>
+        <Tab text = "Code Editor">
+        <TextArea>
+        </TextArea>
+        </Tab> 
+        </tabs> 
+        </TabPane>
+    </center>
+</BorderPane>

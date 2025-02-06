@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+
+<HBox xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="gui.components.Connection"
+>
+    <fx:include source="Provides.fxml" layoutY="-7" />
+    <fx:include layoutX="10" layoutY="5" rotate="90" source="Requires.fxml"/>
+
+</HBox>

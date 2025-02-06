@@ -1,0 +1,15 @@
+component user implements user
+
+provide
+precondition: airline L ccd S
+postcondition: airline L ccd H
+void confirm_release_ccd(Airline airline CCD ccd)
+
+require
+precondition: request L
+postcondition: request L
+void get_flight_offers(Request request)
+
+precondition: offer L airline L ccd H
+postcondition: offer L airline L ccd H
+void book_(FlightOffer offer Airline airline CCD ccd)

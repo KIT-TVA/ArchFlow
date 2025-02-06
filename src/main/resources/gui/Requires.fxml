@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.shape.Arc?>
+<Arc xmlns="http://javafx.com/javafx"
+     xmlns:fx="http://javafx.com/fxml"
+     length="180"
+     radiusX="7"
+     radiusY="7"
+     stroke="black"
+     fill="#00000000"
+     strokeWidth="1"
+>
+</Arc>
