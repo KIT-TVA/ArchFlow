@@ -1,11 +1,6 @@
 package gui.components;
 
-import antlr.cidlParser;
-import antlr.cidlParser.ComponentContext;
-import antlr.cidlParser.Method_headerContext;
-import antlr.cidlParser.List_subcomponentsContext;
-import antlr.cidlParser.AssemblyContext;
-import antlr.cidlParser.DelegationContext;
+import antlr.cidlParser.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 
@@ -117,11 +112,17 @@ public class Composite extends BaseComponent implements CompositeComponent {
     }
 
     public List<AssemblyContext> getCompositeAssemblies(){
-        return componentSpec.assembly();
+        if (componentSpec.assembly() != null) {
+            return componentSpec.assembly();
+        }
+        return List.of();
     }
 
     public List<DelegationContext> getCompositeDelegations(){
-        return componentSpec.delegation();
+        if (componentSpec.delegation() != null) {
+            return componentSpec.delegation();
+        }
+        return List.of();
     }
 
     @Override
@@ -136,12 +137,18 @@ public class Composite extends BaseComponent implements CompositeComponent {
     
     @Override
     public List<Method_headerContext> getProvidedMethods() {
-        return componentSpec.interface_provided().method_header();
+        if (componentSpec.interface_provided() != null) {
+            return componentSpec.interface_provided().method_header();
+        }
+        return List.of();
     }
 
     @Override
     public List<Method_headerContext> getRequiredMethods() {
-        return componentSpec.interface_required().method_header();
+        if (componentSpec.interface_required() != null) {
+            return componentSpec.interface_required().method_header();
+        }
+        return List.of();
 
     }
 }

@@ -4,6 +4,7 @@ import gui.Model;
 import javafx.fxml.FXML;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.json.JSONObject;
@@ -55,7 +56,10 @@ public class MainLayout {
 
     @FXML
     private void generateJava() {
-        JavaClassGenerator.generate(getCanvas().model);
+        Stage stage = (Stage) canvasController.getPane().getScene().getWindow();
+        DirectoryChooser fileChooser = new DirectoryChooser();
+        File targetFile = fileChooser.showDialog(stage);
+        JavaClassGenerator.generate(getCanvas().model, targetFile);
     }
 
     @FXML

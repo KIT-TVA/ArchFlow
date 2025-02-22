@@ -29,7 +29,7 @@ component_interface: INTERFACE_TYPE INTERFACE_STRING;
 
 
 //LEXER RULES
-TYPE: 'void' | 'int' | 'bool' | 'FlightOffers' | 'FlightOffer' | 'Request' | 'CCD' | 'Airline';
+TYPE: 'void' | 'int' | 'bool' | 'boolean' | 'FlightOffers' | 'FlightOffer' | 'Request' | 'CCD' | 'Airline';
 
 COMPONENT: 'component';
 

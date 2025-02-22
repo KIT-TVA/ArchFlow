@@ -59,14 +59,20 @@ public class Atomic extends BaseComponent implements Component {
 
     @Override
     public List<Method_headerContext> getProvidedMethods() {
-            //return componentSpec.method_header();
-        return componentSpec.interface_provided().method_header();
-
+        //return componentSpec.method_header();
+        if (componentSpec.interface_provided() != null && componentSpec.interface_provided().method_header() != null) {
+            return componentSpec.interface_provided().method_header();
+        }
+        return List.of();
     }
+
     @Override
     public List<Method_headerContext> getRequiredMethods() {
-            //return componentSpec.method_header();
-        return componentSpec.interface_required().method_header();
+        //return componentSpec.method_header();
+        if (componentSpec.interface_required() != null && componentSpec.interface_required().method_header() != null) {
+            return componentSpec.interface_required().method_header();
+        }
+        return List.of();
 
     }
 
