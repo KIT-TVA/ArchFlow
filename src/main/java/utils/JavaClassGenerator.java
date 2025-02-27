@@ -27,6 +27,7 @@ public class JavaClassGenerator {
         context.codeModel = codeModel;
 
         try {
+            generateInterfaceShells(model.components, rootPackage, context);
             generateClassShells(model.components, rootPackage, context);
         } catch (JClassAlreadyExistsException e) {
             System.out.println("Error: Class already exists");
@@ -44,6 +45,34 @@ public class JavaClassGenerator {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private static void generateInterfaceShells(List<Component> components, JPackage rootPackage, GenerationContext context) throws JClassAlreadyExistsException {
+        for (Component component : components) {
+            if (component.getParentComponent() == null) {
+                generateInterfaceShell(component, rootPackage, context);
+            }
+        }
+    }
+
+    private static void generateInterfaceShell(Component component, JPackage rootPackage, GenerationContext context) throws JClassAlreadyExistsException {
+        String packageName = component.getComponentContext().NAME(0).getText();
+        String interfaceName = "I" + packageName;
+        if (packageName == null || packageName.isEmpty()) {
+            packageName = component.getName();
+            interfaceName = "I" + packageName;
+        }
+
+        JDefinedClass newInterface = rootPackage._interface(interfaceName);
+        context.nameToComponentMap.put(interfaceName, component);
+        context.componentToJClassMap.put(component, newInterface);
+
+        if (component instanceof CompositeComponent compositeComponent) {
+            JPackage subPackage = rootPackage.subPackage(packageName);
+            for (Component childComponent : compositeComponent.getChildComponents()) {
+                generateInterfaceShell(childComponent, subPackage, context);
+            }
+        }
     }
 
     private static void generateMethodHunks(List<Component> components, GenerationContext context) {
@@ -181,6 +210,7 @@ public class JavaClassGenerator {
         }
 
         JDefinedClass newClass = rootPackage._class(className);
+        newClass._implements(context.getJClassFromName("I" + className));
         context.nameToComponentMap.put(className, component);
         context.componentToJClassMap.put(component, newClass);
 
