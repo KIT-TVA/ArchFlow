@@ -1,5 +1,6 @@
 package utils;
 
+import antlr.cidlParser;
 import gui.Model;
 import gui.components.Atomic;
 import gui.components.Component;
@@ -36,6 +37,7 @@ public class DiagramFileUtils {
             JSONObject componentJson = new JSONObject();
             componentJson.put("name", component.getName())
                     .put("id", component.hashCode())
+                    .put("spec", component.getSpec())
                     .put("type", component instanceof CompositeComponent ? "composite" : "atomic")
                     .put("dimensions", new JSONObject().put("width", component.getContainer().getWidth()).put("height", component.getContainer().getHeight()))
                     .put("position", new JSONObject().put("x", component.getContainer().getLayoutX()).put("y", component.getContainer().getLayoutY()));
@@ -141,6 +143,13 @@ public class DiagramFileUtils {
                 component = new Atomic(position.getX(), position.getY(), (int) dimensions.getX(), (int) dimensions.getY());
             }
             component.setName(((JSONObject) a).getString("name"));
+            if (((JSONObject) a).has("spec")) {
+                String specText = (((JSONObject) a).getString("spec"));
+                InterfaceParser parser = new InterfaceParser();
+                cidlParser.ComponentContext componentContext = parser.parse(specText);
+                component.setSpec(specText);
+                component.setComponentContext(componentContext);
+            }
             idMap.put(id, component);
         });
         return idMap;
