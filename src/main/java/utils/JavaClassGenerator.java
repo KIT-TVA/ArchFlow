@@ -40,7 +40,8 @@ public class JavaClassGenerator {
         generateDelegations(model.components, context);
 
         try {
-            printCodeToConsole(codeModel);
+            //For debugging
+            //printCodeToConsole(codeModel);
             exportCodeToFile(target, codeModel);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -128,7 +129,6 @@ public class JavaClassGenerator {
         for (Component component : components) {
             JDefinedClass componentClass = context.getComponentClass(component);
             for (cidlParser.AssemblyContext assembly : component.getComponentContext().assembly()) {
-                context.terminalNodeToComponentMap.keySet().forEach(System.out::println);
                 ComponentArtefacts requiringComponentArtefacts = context.getComponentArtefactsFromTerminalNode(assembly.NAME(0));
                 ComponentArtefacts providingComponentArtefacts = context.getComponentArtefactsFromTerminalNode(assembly.NAME(1));
                 JFieldVar requiringComponentField = componentClass.fields().get(requiringComponentArtefacts.defaultFieldName);
