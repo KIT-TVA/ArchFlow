@@ -7,6 +7,7 @@ import gui.components.Component;
 import gui.components.Composite;
 import gui.components.CompositeComponent;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -23,7 +24,7 @@ public class JavaClassGenerator {
         JPackage rootPackage = codeModel._package("src");
 
         GenerationContext context = new GenerationContext();
-        context.nameToComponentMap = mapNamesToComponents(model.components);
+        context.terminalNodeToComponentMap = mapTerminalNodesToComponents(model.components);
         context.codeModel = codeModel;
 
         try {
@@ -33,7 +34,7 @@ public class JavaClassGenerator {
             System.out.println("Error: Class already exists");
         }
 
-        generateFields(model.components, context);
+        generateSubcomponentFields(model.components, context);
         generateMethodHunks(model.components, context);
         generateAssemblies(model.components, context);
         generateDelegations(model.components, context);
@@ -64,8 +65,7 @@ public class JavaClassGenerator {
         }
 
         JDefinedClass newInterface = rootPackage._interface(interfaceName);
-        context.nameToComponentMap.put(interfaceName, component);
-        context.componentToInterfaceMap.put(component, newInterface);
+        context.setComponentInterface(component, newInterface);
 
         if (component instanceof CompositeComponent compositeComponent) {
             JPackage subPackage = rootPackage.subPackage(packageName);
@@ -77,14 +77,14 @@ public class JavaClassGenerator {
 
     private static void generateMethodHunks(List<Component> components, GenerationContext context) {
         for (Component component : components) {
-            JDefinedClass componentClass = context.componentToJClassMap.get(component);
+            JDefinedClass componentClass = context.getComponentClass(component);
             component.getProvidedMethods().forEach(
                     method -> generateMethodHunk(componentClass, method, JMod.PUBLIC, context)
             );
             component.getRequiredMethods().forEach(
                     method -> generateMethodHunk(componentClass, method, JMod.PRIVATE, context)
             );
-            JDefinedClass componentInterfaceClass = context.componentToInterfaceMap.get(component);
+            JDefinedClass componentInterfaceClass = context.getComponentInterface(component);
             component.getProvidedMethods().forEach(
                     method -> generateMethodHunk(componentInterfaceClass, method, JMod.PUBLIC, context)
             );
@@ -92,7 +92,7 @@ public class JavaClassGenerator {
     }
 
     private static void generateMethodHunk(JDefinedClass componentClass, cidlParser.Method_headerContext method, int mods, GenerationContext context) {
-        List<JType> methodTypes = method.TYPE().stream().map(t -> getTypeFromString(t.getText(), context)).toList();
+        List<JType> methodTypes = method.TYPE().stream().map(t -> getTypeFromTerminalNode(t, context)).toList();
         List<String> parameterNames = method.NAME().stream().map(ParseTree::getText).toList();
         JType returnType = methodTypes.getFirst();
         assert methodTypes.size() == parameterNames.size() + 1;
@@ -103,14 +103,21 @@ public class JavaClassGenerator {
         jMethod.javadoc().add(method.information_flow_spec().getText());
     }
 
-    private static void generateFields(Collection<Component> components, GenerationContext context) {
+    private static void generateSubcomponentFields(Collection<Component> components, GenerationContext context) {
         for (Component component : components) {
-            JDefinedClass componentClass = context.componentToJClassMap.get(component);
+            JDefinedClass componentClass = context.getComponentClass(component);
             cidlParser.List_subcomponentsContext subcomponents = component.getComponentContext().list_subcomponents();
             if (subcomponents != null) {
                 subcomponents.NAME().forEach(typeName -> {
-                    JType type = getInterfaceTypeFromString(typeName.getText(), context);
-                    componentClass.field(JMod.PRIVATE, type, toFirstLetterLowerCase(typeName.getText()));
+                    if (context.terminalNodeToComponentMap.containsKey(typeName.getText())) {
+                        ComponentArtefacts subComponentArtefacts = context.getComponentArtefactsFromTerminalNode(typeName);
+                        JFieldVar newField = componentClass.field(JMod.PRIVATE, subComponentArtefacts.componentInterface, subComponentArtefacts.defaultFieldName);
+                        componentClass.getConstructor(new JType[]{}).body().decl(subComponentArtefacts.componentClass, subComponentArtefacts.defaultFieldName, JExpr._new(subComponentArtefacts.componentClass));
+                        componentClass.getConstructor(new JType[]{}).body().assign(JExpr._this().ref(newField.name()), newField);
+                    } else {
+                        JType type = getInterfaceTypeFromTerminalNode(typeName, context);
+                        componentClass.field(JMod.PRIVATE, type, toFirstLetterLowerCase(typeName.getText()));
+                    }
                 });
             }
         }
@@ -119,35 +126,25 @@ public class JavaClassGenerator {
 
     private static void generateAssemblies(List<Component> components, GenerationContext context) {
         for (Component component : components) {
-            JDefinedClass componentClass = context.componentToJClassMap.get(component);
+            JDefinedClass componentClass = context.getComponentClass(component);
             for (cidlParser.AssemblyContext assembly : component.getComponentContext().assembly()) {
-                String requiringComponentName = generateInterfaceName(assembly.NAME(0).getText());
-                Optional<JFieldVar> requiringComponentField = getComponentFieldFromName(componentClass, requiringComponentName);
-                String providingComponentName = generateInterfaceName(assembly.NAME(1).getText());
-                Optional<JFieldVar> providingComponentField = getComponentFieldFromName(componentClass, providingComponentName);
-                Optional<JDefinedClass> requiringComponentClass = Optional.empty();
-                Optional<JDefinedClass> providingComponentClass = Optional.empty();
-                if (requiringComponentField.isPresent() && providingComponentField.isPresent()) {
-                    requiringComponentClass = getFieldClass(context, requiringComponentField.get());
-                    providingComponentClass = getFieldInterface(context, providingComponentField.get());
-                }
-                if (requiringComponentClass.isPresent() && providingComponentClass.isPresent()) {
-                    initializeRequiredField(componentClass, requiringComponentClass.get(), providingComponentField.get(), context);
-                    Optional<JMethod> requiringComponentMethod = requiringComponentClass.get().methods().stream().filter(method -> method.name().equals(assembly.METHOD_NAME(0).getText())).findAny();
-                    Optional<JMethod> providingComponentMethod = providingComponentClass.get().methods().stream().filter(method -> method.name().equals(assembly.METHOD_NAME(1).getText())).findAny();
-                    if (requiringComponentMethod.isPresent() && providingComponentMethod.isPresent()) {
-                        JFieldRef providingComponentReference = JExpr._this().ref(referenceNameFromClass(providingComponentClass.get()));
-                        JInvocation returnExpression = providingComponentReference.invoke(providingComponentMethod.get());
-                        requiringComponentMethod.get().params().forEach(returnExpression::arg);
-                        requiringComponentMethod.get().body()._return(returnExpression);
-                    }
+                context.terminalNodeToComponentMap.keySet().forEach(System.out::println);
+                ComponentArtefacts requiringComponentArtefacts = context.getComponentArtefactsFromTerminalNode(assembly.NAME(0));
+                ComponentArtefacts providingComponentArtefacts = context.getComponentArtefactsFromTerminalNode(assembly.NAME(1));
+                JFieldVar requiringComponentField = componentClass.fields().get(requiringComponentArtefacts.defaultFieldName);
+                JFieldVar providingComponentField = componentClass.fields().get(providingComponentArtefacts.defaultFieldName);
+                assert requiringComponentField != null && providingComponentField != null;
+                initializeRequiredField(context.getComponentArtefacts(component), requiringComponentArtefacts, providingComponentArtefacts, context);
+                Optional<JMethod> requiringComponentMethod = requiringComponentArtefacts.componentClass.methods().stream().filter(method -> method.name().equals(assembly.METHOD_NAME(0).getText())).findAny();
+                Optional<JMethod> providingComponentMethod = providingComponentArtefacts.componentInterface.methods().stream().filter(method -> method.name().equals(assembly.METHOD_NAME(1).getText())).findAny();
+                if (requiringComponentMethod.isPresent() && providingComponentMethod.isPresent()) {
+                    JFieldRef providingComponentReference = JExpr._this().ref(providingComponentArtefacts.defaultFieldName);
+                    JInvocation returnExpression = providingComponentReference.invoke(providingComponentMethod.get());
+                    requiringComponentMethod.get().params().forEach(returnExpression::arg);
+                    requiringComponentMethod.get().body()._return(returnExpression);
                 }
             }
         }
-    }
-
-    private static Optional<JFieldVar> getComponentFieldFromName(JDefinedClass componentClass, String requiringComponentName) {
-        return componentClass.fields().values().stream().filter(var -> var.type().name().equals(requiringComponentName)).findFirst();
     }
 
     private static String generateClassName(String name) {
@@ -164,20 +161,15 @@ public class JavaClassGenerator {
         return first + second.substring(0, 1).toUpperCase() + second.substring(1);
     }
 
-    private static String referenceNameFromClass(JClass jClass) {
-        return jClass.name().substring(0, 1).toLowerCase() + jClass.name().substring(1);
-    }
-
-    private static void initializeRequiredField(JDefinedClass parentComponentClass, JDefinedClass requiringComponentClass, JFieldVar requiredField, GenerationContext context) {
-        if (requiringComponentClass.fields().values().stream().noneMatch(field -> field.type().equals(requiredField.type()))) {
-            String requiredFieldName = toFirstLetterLowerCase(requiredField.name());
-            String setterName = concatCamelCase("set", requiredFieldName);
-            requiringComponentClass.field(JMod.PRIVATE, requiredField.type(), requiredFieldName);
-            JMethod setter = requiringComponentClass.method(JMod.PUBLIC, context.codeModel.VOID, setterName);
-            setter.param(requiredField.type(), requiredFieldName);
-            setter.body().assign(JExpr._this().ref(requiredFieldName), JExpr.ref(requiredFieldName));
-            JFieldVar referenceInParent = parentComponentClass.fields().get(requiredFieldName);
-            parentComponentClass.getConstructor(new JType[]{}).body().invoke(JExpr._this().ref(requiringComponentClass.name()), setterName).arg(referenceInParent);
+    private static void initializeRequiredField(ComponentArtefacts parentComponent, ComponentArtefacts requiringComponent, ComponentArtefacts requiredComponent, GenerationContext context) {
+        if (!requiringComponent.componentClass.fields().containsKey(requiredComponent.defaultFieldName)) {
+            String setterName = concatCamelCase("set", requiredComponent.defaultFieldName);
+            requiringComponent.componentClass.field(JMod.PRIVATE, requiredComponent.componentInterface, requiredComponent.defaultFieldName);
+            JMethod setter = requiringComponent.componentClass.method(JMod.PUBLIC, context.codeModel.VOID, setterName);
+            setter.param(requiredComponent.componentInterface, requiredComponent.defaultFieldName);
+            setter.body().assign(JExpr._this().ref(requiredComponent.defaultFieldName), JExpr.ref(requiredComponent.defaultFieldName));
+            JFieldVar referenceInParent = parentComponent.componentClass.fields().get(requiredComponent.defaultFieldName);
+            parentComponent.componentClass.getConstructor(new JType[]{}).body().invoke(JExpr.ref(requiringComponent.defaultFieldName), setterName).arg(referenceInParent);
         }
     }
 
@@ -185,45 +177,21 @@ public class JavaClassGenerator {
         return name.substring(0, 1).toLowerCase() + name.substring(1);
     }
 
-    private static Optional<JDefinedClass> getFieldClass(GenerationContext context, JFieldVar requiringComponentField) {
-        Optional<JDefinedClass> result = context.componentToJClassMap.values().stream().filter(jDefinedClass -> jDefinedClass.fullName().equals(requiringComponentField.type().fullName())).findAny();
-        if (result.isEmpty()) {
-            result = context.componentToJClassMap.values().stream().filter(jClass -> {
-                for (Iterator<JClass> it = jClass._implements(); it.hasNext(); ) {
-                    JClass jInterface = it.next();
-                    if (jInterface.fullName().equals(requiringComponentField.type().fullName())) {
-                        return true;
-                    }
-                }
-                return false;
-            }).findAny();
-        }
-        return result;
-    }
-
-    private static Optional<JDefinedClass> getFieldInterface(GenerationContext context, JFieldVar requiringComponentField) {
-        return context.componentToInterfaceMap.values().stream().filter(jDefinedClass -> jDefinedClass.fullName().equals(requiringComponentField.type().fullName())).findAny();
-    }
-
     private static void generateDelegations(Collection<Component> components, GenerationContext context) {
         for (Component component : components.stream().filter(c -> (c instanceof CompositeComponent)).toList()) {
             assert component instanceof Composite;
-            JDefinedClass componentClass = context.componentToJClassMap.get(component);
+            ComponentArtefacts delegatingComponentArtefacts = context.getComponentArtefacts(component);
             ((Composite) component).getCompositeDelegations().forEach(delegationContext -> {
-                String providingComponentName = generateInterfaceName(delegationContext.NAME().getText());
-                Optional<JFieldVar> providingComponentField = getComponentFieldFromName(componentClass, providingComponentName);
-                Optional<JDefinedClass> providingComponentClass = Optional.empty();
-                if (providingComponentField.isPresent()) {
-                    providingComponentClass = getFieldClass(context, providingComponentField.get());
-                }
-                if (providingComponentClass.isPresent()) {
-                    Optional<JMethod> requiringComponentMethod = componentClass.methods().stream().filter(method -> method.name().equals(delegationContext.METHOD_NAME(0).getText())).findAny();
-                    Optional<JMethod> providingComponentMethod = providingComponentClass.get().methods().stream().filter(method -> method.name().equals(delegationContext.METHOD_NAME(1).getText())).findAny();
-                    if (requiringComponentMethod.isPresent() && providingComponentMethod.isPresent()) {
-                        JInvocation returnExpression = invoke(providingComponentMethod.get());
-                        requiringComponentMethod.get().params().forEach(returnExpression::arg);
-                        requiringComponentMethod.get().body()._return(returnExpression);
-                    }
+                ComponentArtefacts providingComponentArtefacts = context.getComponentArtefactsFromTerminalNode(delegationContext.NAME());
+                JFieldVar providingComponentField = delegatingComponentArtefacts.componentClass.fields().get(providingComponentArtefacts.defaultFieldName);
+                assert providingComponentField != null;
+                assert providingComponentArtefacts.componentInterface != null;
+                Optional<JMethod> delegatingComponentMethod = delegatingComponentArtefacts.componentClass.methods().stream().filter(method -> method.name().equals(delegationContext.METHOD_NAME(0).getText())).findAny();
+                Optional<JMethod> providingComponentMethod = providingComponentArtefacts.componentInterface.methods().stream().filter(method -> method.name().equals(delegationContext.METHOD_NAME(1).getText())).findAny();
+                if (delegatingComponentMethod.isPresent() && providingComponentMethod.isPresent()) {
+                    JInvocation returnExpression = invoke(JExpr._this().ref(providingComponentField), providingComponentMethod.get());
+                    delegatingComponentMethod.get().params().forEach(returnExpression::arg);
+                    delegatingComponentMethod.get().body()._return(returnExpression);
                 }
             });
         }
@@ -274,14 +242,15 @@ public class JavaClassGenerator {
             className = component.getName();
         }
         className = generateClassName(className);
+        ComponentArtefacts componentArtefacts = context.getComponentArtefacts(component);
         JDefinedClass newClass = rootPackage._class(className);
-        newClass._implements(context.getInterfaceFromName(generateInterfaceName(className)));
+        newClass._implements(componentArtefacts.componentInterface);
         newClass.constructor(JMod.PUBLIC);
-        context.nameToComponentMap.put(className, component);
-        context.componentToJClassMap.put(component, newClass);
+        componentArtefacts.componentClass = newClass;
+        componentArtefacts.defaultFieldName = toFirstLetterLowerCase(className);
 
         if (component instanceof CompositeComponent compositeComponent) {
-            JPackage subPackage = rootPackage.subPackage(className);
+            JPackage subPackage = rootPackage.subPackage(toFirstLetterLowerCase(className));
             for (Component childComponent : compositeComponent.getChildComponents()) {
                 generateClassShell(childComponent, subPackage, context);
             }
@@ -289,19 +258,14 @@ public class JavaClassGenerator {
     }
 
 
-    private static Map<String, Component> mapNamesToComponents(Collection<Component> components) {
+    private static Map<String, Component> mapTerminalNodesToComponents(Collection<Component> components) {
         Map<String, Component> map = new HashMap<>();
         components.forEach(component -> map.put(component.getComponentContext().NAME(0).getText(), component));
         return map;
     }
 
-    private static JType getTypeFromMethod(cidlParser.Method_headerContext methodHeaderContext, GenerationContext context) {
-        String typeName = methodHeaderContext.TYPE(0).getText();
-        return getTypeFromString(typeName, context);
-    }
-
-    private static JType getInterfaceTypeFromString(String typeName, GenerationContext context) {
-        JType classType = getTypeFromString(typeName, context);
+    private static JType getInterfaceTypeFromTerminalNode(TerminalNode typeName, GenerationContext context) {
+        JType classType = getTypeFromTerminalNode(typeName, context);
         if (classType instanceof JClass) {
             if(((JClass) classType)._implements().hasNext()) {
                 return ((JClass) classType)._implements().next();
@@ -310,37 +274,76 @@ public class JavaClassGenerator {
         return classType;
     }
 
-    private static JType getTypeFromString(String typeName, GenerationContext context) {
-        if (context.getJClassFromName(typeName) != null) {
-            return context.getJClassFromName(typeName);
+    private static JType getTypeFromTerminalNode(TerminalNode typeName, GenerationContext context) {
+        if (context.terminalNodeToComponentMap.containsKey(typeName.getText())) {
+            return context.getComponentArtefactsFromTerminalNode(typeName).componentInterface;
         }
         try {
-            return context.codeModel.parseType(typeName);
+            return context.codeModel.parseType(typeName.getText());
         } catch (ClassNotFoundException e) {
-            return context.codeModel.directClass(typeName);
+            return context.codeModel.directClass(typeName.getText());
         }
     }
 
     private static class GenerationContext {
-        public Map<String, Component> nameToComponentMap = new HashMap<>();
-        public Map<Component, JDefinedClass> componentToJClassMap = new HashMap<>();
-        public Map<Component, JDefinedClass> componentToInterfaceMap = new HashMap<>();
+        public Map<String, Component> terminalNodeToComponentMap = new HashMap<>();
+        public Map<Component, ComponentArtefacts> componentToArtefactsMap = new HashMap<>();
         public JCodeModel codeModel;
 
-        public JDefinedClass getJClassFromName(String name) {
-            if (nameToComponentMap.containsKey(name)) {
-                return componentToJClassMap.get(nameToComponentMap.get(name));
-            } else {
-                return null;
+        public void setComponentClass(Component component, JDefinedClass jClass) {
+            initializeComponentIfUnset(component);
+            componentToArtefactsMap.get(component).componentClass = jClass;
+        }
+
+        public void setComponentInterface(Component component, JDefinedClass jClass) {
+            initializeComponentIfUnset(component);
+            componentToArtefactsMap.get(component).componentInterface = jClass;
+        }
+
+        public void setComponentDefaultFieldName(Component component, String fieldName) {
+            initializeComponentIfUnset(component);
+            componentToArtefactsMap.get(component).defaultFieldName = fieldName;
+        }
+
+
+        public JDefinedClass getComponentClass(Component component) {
+            assert componentToArtefactsMap.containsKey(component);
+            return componentToArtefactsMap.get(component).componentClass;
+        }
+
+        public JDefinedClass getComponentInterface(Component component) {
+            assert componentToArtefactsMap.containsKey(component);
+            return componentToArtefactsMap.get(component).componentInterface;
+        }
+
+        public String getComponentDefaultFieldName(Component component) {
+            assert componentToArtefactsMap.containsKey(component);
+            return componentToArtefactsMap.get(component).defaultFieldName;
+        }
+
+        public ComponentArtefacts getComponentArtefactsFromTerminalNode(TerminalNode node) {
+            assert node != null;
+            assert terminalNodeToComponentMap.containsKey(node.getText()) && componentToArtefactsMap.containsKey(terminalNodeToComponentMap.get(node.getText()));
+            return componentToArtefactsMap.get(terminalNodeToComponentMap.get(node.getText()));
+        }
+
+        public ComponentArtefacts getComponentArtefacts(Component component) {
+            assert component != null;
+            assert componentToArtefactsMap.containsKey(component);
+            return componentToArtefactsMap.get(component);
+        }
+
+        private void initializeComponentIfUnset(Component component) {
+            assert component != null;
+            if (!componentToArtefactsMap.containsKey(component)) {
+                componentToArtefactsMap.put(component, new ComponentArtefacts());
             }
         }
 
-        public JDefinedClass getInterfaceFromName(String name) {
-            if (nameToComponentMap.containsKey(name)) {
-                return componentToInterfaceMap.get(nameToComponentMap.get(name));
-            } else {
-                return null;
-            }
-        }
+    }
+    private static class ComponentArtefacts {
+        JDefinedClass componentClass;
+        JDefinedClass componentInterface;
+        String defaultFieldName;
     }
 }
