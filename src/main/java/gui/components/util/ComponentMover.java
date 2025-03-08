@@ -33,7 +33,7 @@ public class ComponentMover {
         this.component = component;
     }
 
-    public void mouseDownComponentResized(MouseEvent event, Side side) {
+    public void mouseDownResizeComponent(MouseEvent event, Side side) {
         resizeMode = true;
         direction = side;
 
