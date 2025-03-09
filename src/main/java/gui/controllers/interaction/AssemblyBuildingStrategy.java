@@ -15,41 +15,41 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 
-public class AssemblyBuildingStrategy extends BaseInteractionStrategy  {
+public class AssemblyBuildingStrategy extends BaseInteractionStrategy {
     private AssemblyBuilder assemblyBuilder;
 
     public AssemblyBuildingStrategy(MainLayout mainLayout, Model model, InteractionEventDispatcher eventDispatcher) {
         super(mainLayout, model, eventDispatcher);
     }
 
-
     @Override
     public void componentClicked(Component component, MouseEvent event) {
         handleAssemblyBuildingClick(component, event);
     }
+
     @Override
     public void canvasClicked(ComponentCanvas canvas, MouseEvent event) {
         handleAssemblyBuildingClick(null, event);
     }
+
     @Override
     public void componentMouseOver(Component component, MouseEvent event) {
         Point2D point = ComponentTraverser.getSwitchedCoordinates(component, null).add(new Point2D(event.getX(), event.getY()));
         assemblyBuilder.mouseoverComponent(component, point);
     }
+
     @Override
     public void canvasMouseOver(ComponentCanvas canvas, MouseEvent event) {
         assemblyBuilder.mouseoverComponent(null, new Point2D(event.getX(), event.getY()));
     }
+
     @Override
     public void keyPressed(KeyEvent event) {
         if (event.getCode() == KeyCode.ESCAPE) {
-            if (assemblyBuilder != null) {
-                model.assemblies.remove(assemblyBuilder.getAssembly());
-                canvas.remove(assemblyBuilder.getAssembly());
-                assemblyBuilder = null;
-            }
+            model.assemblies.remove(assemblyBuilder.getAssembly());
+            canvas.remove(assemblyBuilder.getAssembly());
+            assemblyBuilder = null;
             disable();
-            eventDispatcher.moveComponentStrategy.enable();
         }
     }
 
@@ -76,9 +76,9 @@ public class AssemblyBuildingStrategy extends BaseInteractionStrategy  {
                     }
                 });
             }
+            assemblyBuilder.getAssembly().setViewOrder(0);
             assemblyBuilder = null;
             this.disable();
-            eventDispatcher.moveComponentStrategy.enable();
         });
         canvas.draw(assemblyBuilder.getAssembly());
         model.assemblies.add(assemblyBuilder.getAssembly());
@@ -90,7 +90,20 @@ public class AssemblyBuildingStrategy extends BaseInteractionStrategy  {
             model.assemblies.remove(assemblyBuilder.getAssembly());
             return true;
         }
-        assemblyBuilder.getAssembly().setViewOrder(0);
         return false;
+    }
+
+    @Override
+    public void enable() {
+        super.enable();
+        eventDispatcher.moveComponentStrategy.disable();
+        eventDispatcher.assemblyEditingStrategy.disable();
+    }
+
+    @Override
+    public void disable() {
+        super.disable();
+        eventDispatcher.moveComponentStrategy.enable();
+        eventDispatcher.assemblyEditingStrategy.enable();
     }
 }

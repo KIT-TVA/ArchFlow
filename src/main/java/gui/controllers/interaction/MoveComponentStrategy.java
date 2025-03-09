@@ -78,7 +78,6 @@ public class MoveComponentStrategy extends BaseInteractionStrategy {
         overlay.setOnArrowClicked(side -> {
             eventDispatcher.assemblyBuildingStrategy.enable();
             eventDispatcher.assemblyBuildingStrategy.initialize(component, side);
-            disable();
         });
         overlay.setOnEdgePressed((event, s) -> {
             event.consume();
@@ -96,23 +95,27 @@ public class MoveComponentStrategy extends BaseInteractionStrategy {
         canvas.draw(overlay);
     }
 
-    private void deleteComponent(Component componentToDelete) {
-        model.components.remove(componentToDelete);
-        if (componentToDelete.getParentComponent() == null) {
-            canvas.remove(componentToDelete.getContainer());
-        } else {
-            componentToDelete.getParentComponent().removeChildComponent(componentToDelete);
+    private void deleteComponent(Component component) {
+        if (component instanceof Composite) {
+            ((Composite) component).getChildComponents().forEach(this::deleteComponent);
         }
-        Collection<Assembly> assembliesToRemove = model.assemblies.stream().filter(assembly -> (assembly.getProvidingComponent() == componentToDelete || assembly.getRequiringComponent() == componentToDelete)).toList();
+        deleteComponentAssemblies(component);
+        if (component.getParentComponent() == null) {
+            canvas.remove(component.getContainer());
+        } else {
+            component.getParentComponent().removeChildComponent(component);
+        }
+        canvas.remove(overlay);
+        overlay = null;
+        model.components.remove(component);
+    }
+
+    private void deleteComponentAssemblies(Component component) {
+        Collection<Assembly> assembliesToRemove = model.assemblies.stream().filter(assembly -> (assembly.getProvidingComponent() == component || assembly.getRequiringComponent() == component)).toList();
         assembliesToRemove.forEach(a -> {
             model.assemblies.remove(a);
             canvas.remove(a);
         });
-        if (componentToDelete instanceof Composite) {
-            ((Composite) componentToDelete).getChildComponents().forEach(this::deleteComponent);
-        }
-        canvas.remove(overlay);
-        overlay = null;
     }
 
     @Override

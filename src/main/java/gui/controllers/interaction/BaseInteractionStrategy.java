@@ -9,7 +9,7 @@ public abstract class BaseInteractionStrategy implements InteractionStrategy{
     protected ComponentCanvas canvas;
     protected Model model;
     protected InteractionEventDispatcher eventDispatcher;
-    protected boolean enabled;
+    protected boolean enabled = true;
 
     @Override
     public void disable() {
@@ -29,6 +29,5 @@ public abstract class BaseInteractionStrategy implements InteractionStrategy{
         this.model = model;
         canvas = mainLayout.getCanvas();
         this.eventDispatcher = eventDispatcher;
-        enable();
     }
 }

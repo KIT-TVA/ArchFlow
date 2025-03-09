@@ -13,25 +13,41 @@ import java.util.ArrayList;
 
 public class InteractionEventDispatcher {
     private final MainLayout mainLayout;
+    private final Model model;
     private final ArrayList<InteractionStrategy> interactionStrategies = new ArrayList<>();
     private Component currentComponent;
     protected AssemblyBuildingStrategy assemblyBuildingStrategy;
     protected EditComponentNameStrategy editComponentNameStrategy;
     protected MoveComponentStrategy moveComponentStrategy;
     protected SpecEditingStrategy specEditingStrategy;
+    protected AssemblyEditingStrategy assemblyEditingStrategy;
 
     public InteractionEventDispatcher(MainLayout mainLayout, Model model) {
         this.mainLayout = mainLayout;
+        this.model = model;
         assemblyBuildingStrategy = new AssemblyBuildingStrategy(mainLayout, model, this);
         editComponentNameStrategy = new EditComponentNameStrategy(mainLayout, model, this);
         moveComponentStrategy = new MoveComponentStrategy(mainLayout, model, this);
         specEditingStrategy = new SpecEditingStrategy(mainLayout, model, this);
+        assemblyEditingStrategy = new AssemblyEditingStrategy(mainLayout, model, this);
         interactionStrategies.add(assemblyBuildingStrategy);
         interactionStrategies.add(editComponentNameStrategy);
         interactionStrategies.add(moveComponentStrategy);
         interactionStrategies.add(specEditingStrategy);
+        interactionStrategies.add(assemblyEditingStrategy);
         assemblyBuildingStrategy.disable();
         setHandleCanvasInteraction();
+        setHandlerForAllComponents();
+        mainLayout.getCanvas().getPane().getScene().setOnKeyPressed(event -> {
+            for (InteractionStrategy interactionStrategy : interactionStrategies) {
+                if (interactionStrategy.isEnabled()) {
+                    interactionStrategy.keyPressed(event);
+                }
+            }
+        });
+    }
+
+    private void setHandlerForAllComponents() {
         model.components.forEach(this::setHandleComponentInteraction);
         mainLayout.getCanvas().getPane().getChildren().addListener((ListChangeListener<? super Node>) change -> {
             if (change.next()) {
@@ -40,13 +56,6 @@ public class InteractionEventDispatcher {
                         setHandleComponentInteraction((Component) node);
                     }
                 });
-            }
-        });
-        mainLayout.getCanvas().getPane().getScene().setOnKeyPressed(event -> {
-            for (InteractionStrategy interactionStrategy : interactionStrategies) {
-                if (interactionStrategy.isEnabled()) {
-                    interactionStrategy.keyPressed(event);
-                }
             }
         });
     }
