@@ -1,4 +1,4 @@
-.menu-bar
+.menu-bar, .menu-bar-container
 {
-    -fx-background-color: darksalmon;
+    -fx-background-color: #a19c9c;
 }

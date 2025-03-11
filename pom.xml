@@ -21,6 +21,17 @@
             <version>17.0.6</version>
         </dependency>
         <dependency>
+            <groupId>org.kordamp.ikonli</groupId>
+            <artifactId>ikonli-javafx</artifactId>
+            <version>12.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kordamp.ikonli</groupId>
+            <artifactId>ikonli-carbonicons-pack</artifactId>
+            <version>12.3.1</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>17.0.6</version>
@@ -45,7 +56,7 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
-            
+
         </dependency>
         <dependency>
             <groupId>com.paypal.digraph</groupId>
@@ -62,6 +73,7 @@
             <artifactId>jsonschema2pojo-core</artifactId>
             <version>1.2.2</version>
         </dependency>
+
     </dependencies>
 
     <build>
@@ -100,10 +112,10 @@
 
 
     <dependencyManagement>
-    
+
 
         <dependencies>
-        
+
 
             <dependency>
                 <groupId>org.antlr</groupId>

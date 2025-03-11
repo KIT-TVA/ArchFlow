@@ -11,6 +11,9 @@ module edu.kit.tva.cif {
     requires java.desktop;
     requires codemodel;
     requires jsonschema2pojo.core;
+    requires org.kordamp.ikonli.carbonicons;
+    requires org.kordamp.ikonli.core;
+    requires org.kordamp.ikonli.javafx;
 
     opens gui to javafx.fxml;
     exports gui;

@@ -2,7 +2,9 @@ package gui.views;
 
 import gui.Model;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -38,9 +40,30 @@ public class MainLayout {
     public MenuItem saveSpec;
 
     @FXML
+    private TabPane tabs;
+
+    @FXML
     public MenuItem checkAssembly;
     @FXML
     public MenuItem checkComposite;
+
+    @FXML
+    private Button showModelButton;
+    @FXML
+    private Button showCodeEditorButton;
+
+    @FXML
+    private void showModel() {
+        tabs.getSelectionModel().select(0);
+        showModelButton.setStyle("-fx-background-color: #3d7dd0");
+        showCodeEditorButton.setStyle("-fx-background-color: #FFFFFF");
+    }
+    @FXML
+    private void showCodeEditor() {
+        tabs.getSelectionModel().select(1);
+        showCodeEditorButton.setStyle("-fx-background-color: #3d7dd0");
+        showModelButton.setStyle("-fx-background-color: #FFFFFF");
+    }
 
     public void setOnDiagramLoaded(Consumer<Model> onDiagramLoaded) {
         this.onDiagramLoaded = onDiagramLoaded;

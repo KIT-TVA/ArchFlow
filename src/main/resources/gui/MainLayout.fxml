@@ -1,72 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
 <?import gui.views.ComponentList?>
-
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="gui.views.MainLayout"
             prefHeight="400.0" prefWidth="600.0">
     <top>
-    <MenuBar stylesheets="@style/MenuBar.css" >
-    <menus>
-    <Menu text="File">
-        <items> 
-        <MenuItem fx:id="loadSpec" text="Load Specificataion"/> 
-        <MenuItem fx:id="saveSpec" text="Save Specification"/>
-        <MenuItem fx:id="saveDiagram" text="Save Diagram" onAction="#saveDiagram"/>
-        <MenuItem fx:id="loadDiagram" text="Load Diagram" onAction="#loadDiagram" />
-        </items>
-    </Menu>
+        <HBox stylesheets="@style/MenuBar.css" styleClass="menu-bar-container">
+            <MenuBar stylesheets="@style/MenuBar.css">
+                <Menu text="File">
+                    <items>
+                        <MenuItem fx:id="loadSpec" text="Load Specificataion"/>
+                        <MenuItem fx:id="saveSpec" text="Save Specification"/>
+                        <MenuItem fx:id="saveDiagram" text="Save Diagram" onAction="#saveDiagram"/>
+                        <MenuItem fx:id="loadDiagram" text="Load Diagram" onAction="#loadDiagram"/>
+                    </items>
+                </Menu>
 
-        <Menu text="Generate">
-            <MenuItem fx:id="generateJava" text="Generate Java" onAction="#generateJava"/>
-        </Menu>
-    
-    <Menu text="Check">
-        <items>
-            <MenuItem fx:id="checkComposite" text="Check Composition"/>
-        </items> 
-    </Menu>
-    
-    <Menu text="Help">
-    </Menu>
-    
-    </menus> 
-    
-    </MenuBar>
+                <Menu text="Generate">
+                    <MenuItem fx:id="generateJava" text="Generate Java" onAction="#generateJava"/>
+                </Menu>
+
+                <Menu text="Check">
+                    <items>
+                        <MenuItem fx:id="checkComposite" text="Check Composition"/>
+                    </items>
+                </Menu>
+
+                <Menu text="Help">
+                </Menu>
+            </MenuBar>
+            <Region HBox.hgrow="ALWAYS"/>
+            <HBox>
+                <Button text="Model View" style="-fx-background-color: #3d7dd0" onAction="#showModel" fx:id="showModelButton" stylesheets="@style/Tab.css">
+                    <graphic>
+                        <FontIcon iconLiteral="ci-content-view"/>
+                    </graphic>
+                </Button>
+                <Button text="Code Editor" onAction="#showCodeEditor" fx:id="showCodeEditorButton" stylesheets="@style/Tab.css">
+                    <graphic>
+                        <FontIcon iconLiteral="ci-code"/>
+                    </graphic>
+                </Button>
+            </HBox>
+        </HBox>
 
     </top>
-    
+
     <center>
-    <TabPane stylesheets="@style/TabPane.css"> <tabs> <Tab text="Component Model">
-        <SplitPane stylesheets="@style/SplitPane.css" >
-            <Pane>
-                <VBox >
-                    <ComponentList fx:id="componentList" viewOrder="0" />
-                    <AnchorPane stylesheets="@style/TabPane.css" viewOrder="1">
-                        <fx:include source="ComponentCanvas.fxml" fx:id="canvas"/>
-                    </AnchorPane>
-                </VBox>
-            </Pane>
-            <SplitPane orientation="VERTICAL">
-            <TextArea fx:id="spec">
-            </TextArea>
-                <TextArea fx:id="errors">
+        <TabPane stylesheets="@style/TabPane.css" fx:id="tabs">
+            <Tab text="Component Model">
+                <SplitPane stylesheets="@style/SplitPane.css">
+                    <Pane>
+                        <VBox>
+                            <ComponentList fx:id="componentList" viewOrder="0"/>
+                            <AnchorPane stylesheets="@style/TabPane.css" viewOrder="1">
+                                <fx:include source="ComponentCanvas.fxml" fx:id="canvas"/>
+                            </AnchorPane>
+                        </VBox>
+                    </Pane>
+                    <SplitPane orientation="VERTICAL">
+                        <TextArea fx:id="spec">
+                        </TextArea>
+                        <TextArea fx:id="errors">
+                        </TextArea>
+                    </SplitPane>
+                </SplitPane>
+            </Tab>
+            <Tab text="Code Editor">
+                <TextArea>
                 </TextArea>
-            </SplitPane>
-        </SplitPane> 
-        </Tab>
-        <Tab text = "Code Editor">
-        <TextArea>
-        </TextArea>
-        </Tab> 
-        </tabs> 
+            </Tab>
         </TabPane>
     </center>
 </BorderPane>
