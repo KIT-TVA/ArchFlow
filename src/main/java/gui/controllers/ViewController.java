@@ -37,7 +37,7 @@ public class ViewController {
 
     private void setHandleAddAtomicComponent() {
         mainLayout.componentList.atomic.setOnAction(e -> {
-            Atomic a = new Atomic(20, 20, 50, 50);
+            Atomic a = new Atomic(20, 20, 90, 50);
             //Set component specific handlers
             model.add_component(a);
             canvas.draw(a);

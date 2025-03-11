@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.shape.Rectangle?>
-<?import javafx.scene.Cursor?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <StackPane fx:id="container" xmlns:fx="http://javafx.com/fxml"
 >
     <cursor>
@@ -16,6 +18,16 @@
             fill="snow"
     >
     </Rectangle>
-    <Label fx:id="name">
-    </Label>
+    <BorderPane style="-fx-padding: 12 12 0 12">
+        <top>
+            <BorderPane>
+                <center>
+                    <Label fx:id="name" style="-fx-alignment: top-center" />
+                </center>
+                <right>
+                    <FontIcon iconSize="20" iconLiteral="ci-container-software" />
+                </right>
+            </BorderPane>
+        </top>
+    </BorderPane>
 </StackPane>
