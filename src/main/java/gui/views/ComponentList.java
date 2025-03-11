@@ -18,7 +18,7 @@ public class ComponentList extends HBox {
         super.setSpacing(12);
         super.setAlignment(Pos.CENTER);
         super.setPadding(new Insets(10, 10, 10, 10));
-        super.setStyle("-fx-background-color: #FFFFFF");
+        super.setStyle("-fx-background-color: #FFFFFF; -fx-fill-width: true;");
         atomic = new Button("Atomic");
         atomic.setGraphic(new FontIcon(CarbonIcons.CENTER_SQUARE));
         atomic.setStyle(style);

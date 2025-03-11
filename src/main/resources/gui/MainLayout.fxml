@@ -59,14 +59,18 @@
         <TabPane stylesheets="@style/TabPane.css" fx:id="tabs">
             <Tab text="Component Model">
                 <SplitPane stylesheets="@style/SplitPane.css">
-                    <Pane>
-                        <VBox>
+                    <BorderPane>
+                        <top>
                             <ComponentList fx:id="componentList" viewOrder="0"/>
-                            <AnchorPane stylesheets="@style/TabPane.css" viewOrder="1">
-                                <fx:include source="ComponentCanvas.fxml" fx:id="canvas"/>
-                            </AnchorPane>
-                        </VBox>
-                    </Pane>
+                        </top>
+                        <center>
+                            <VBox style="-fx-fill-width: true">
+                                <AnchorPane stylesheets="@style/TabPane.css" viewOrder="1">
+                                    <fx:include source="ComponentCanvas.fxml" fx:id="canvas"/>
+                                </AnchorPane>
+                            </VBox>
+                        </center>
+                    </BorderPane>
                     <SplitPane orientation="VERTICAL">
                         <TextArea fx:id="spec">
                         </TextArea>
