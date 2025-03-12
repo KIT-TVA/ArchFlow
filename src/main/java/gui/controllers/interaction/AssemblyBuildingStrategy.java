@@ -4,7 +4,7 @@ import gui.Model;
 import gui.components.Component;
 import gui.components.assembly.components.Assembly;
 import gui.components.assembly.components.ComponentConnection;
-import gui.components.assembly.components.Delegates;
+import gui.components.assembly.components.Delegation;
 import gui.components.assembly.util.AssemblyBuilder;
 import gui.components.util.ComponentTraverser;
 import gui.views.ComponentCanvas;
@@ -21,6 +21,14 @@ public class AssemblyBuildingStrategy extends BaseInteractionStrategy {
     public AssemblyBuildingStrategy(MainLayout mainLayout, Model model, InteractionEventDispatcher eventDispatcher) {
         super(mainLayout, model, eventDispatcher);
     }
+
+    public void begin(Delegation delegation) {
+        assert delegation != null;
+        enable();
+        assemblyBuilder = new AssemblyBuilder(delegation);
+        initializeAssemblyBuilder();
+    }
+
 
     @Override
     public void componentClicked(Component component, MouseEvent event) {
@@ -68,8 +76,8 @@ public class AssemblyBuildingStrategy extends BaseInteractionStrategy {
             if (!deleteAssemblyIfIncomplete()) {
                 Assembly assembly = assemblyBuilder.getAssembly();
                 assembly.getChildren().forEach(a -> {
-                    if (a instanceof Delegates) {
-                        ((Delegates) a).getComponent().getAssemblies().add((Delegates) a);
+                    if (a instanceof Delegation) {
+                        ((Delegation) a).getComponent().getAssemblies().add((Delegation) a);
                         a.setMouseTransparent(false);
                     } else if (a instanceof ComponentConnection) {
                         ((ComponentConnection) a).getComponent().getAssemblies().add((ComponentConnection) a);

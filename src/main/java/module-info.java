@@ -27,4 +27,6 @@ module edu.kit.tva.cif {
     opens gui.components to javafx.fxml;
     exports gui.components.util;
     opens gui.components.util to javafx.fxml;
+    exports gui.components.assembly.components to javafx.fxml;
+    opens gui.components.assembly.components to javafx.fxml;
 }

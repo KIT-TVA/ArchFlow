@@ -21,19 +21,19 @@ public class AssemblyBuilder {
     private Component currentHoverComponent;
 
 
-    public AssemblyBuilder(Delegates delegates) {
-        assert delegates != null;
-        assert delegates.getComponent() != null;
-        assert delegates.getEnd() == null || delegates.getStart() == null;
-        this.startingComponent = delegates.getComponent();
-        assemblyStack.add(delegates);
+    public AssemblyBuilder(Delegation delegation) {
+        assert delegation != null;
+        assert delegation.getComponent() != null;
+        assert delegation.getEnd() == null || delegation.getStart() == null;
+        this.startingComponent = delegation.getComponent();
+        assemblyStack.add(delegation);
         AssemblyLine startingLine;
-        if (delegates.getEnd() == null) {
-            startingLine = new AssemblyLine(delegates, delegates.getEndPoint());
-            delegates.setEnd(startingLine, startingLine.getStartPoint());
+        if (delegation.getEnd() == null) {
+            startingLine = new AssemblyLine(delegation, delegation.getEndPoint());
+            delegation.setEnd(startingLine, startingLine.getStartPoint());
         } else {
-            startingLine = new AssemblyLine(delegates, delegates.getStartPoint());
-            delegates.setStart(startingLine, startingLine.getStartPoint());
+            startingLine = new AssemblyLine(delegation, delegation.getStartPoint());
+            delegation.setStart(startingLine, startingLine.getStartPoint());
         }
         assemblyStack.add(startingLine);
         assembly.getChildren().add(startingLine);
@@ -45,7 +45,7 @@ public class AssemblyBuilder {
         this.startingComponent = startingComponent;
         Assemblable start;
         if (startingComponent instanceof CompositeComponent) {
-            start = new Delegates(startingComponent, side);
+            start = new Delegation(startingComponent, side);
         } else {
             start = new ComponentConnection(startingComponent, side, InterfaceType.PROVIDES);
         }
@@ -110,11 +110,12 @@ public class AssemblyBuilder {
     private void makeEndingDelegates(Point2D mousePosition) {
 
         Point2D intersection = getNearestGridPosition(getComponentIntersection(lastValidComponent, assemblyStack.getLast().getStartPoint(), mousePosition));
-        Delegates endingDelegates = new Delegates(lastValidComponent, intersection, calculateSideOfPoint(lastValidComponent, intersection));
-        assemblyStack.getLast().setEnd(endingDelegates, endingDelegates.getStartPoint());
-        endingDelegates.setStart(assemblyStack.getLast(), endingDelegates.getStartPoint());
-        assemblyStack.addLast(endingDelegates);
-        assembly.getChildren().add(endingDelegates);
+        Delegation endingDelegation = new Delegation(lastValidComponent, intersection, calculateSideOfPoint(lastValidComponent, intersection));
+        endingDelegation.setRequiresFromComponent(startingComponent);
+        assemblyStack.getLast().setEnd(endingDelegation, endingDelegation.getStartPoint());
+        endingDelegation.setStart(assemblyStack.getLast(), endingDelegation.getStartPoint());
+        assemblyStack.addLast(endingDelegation);
+        assembly.getChildren().add(endingDelegation);
     }
 
     private void makeEndingComponentConnection(Point2D mousePosition) {
@@ -133,6 +134,14 @@ public class AssemblyBuilder {
             makeEndingComponentConnection(mousePosition);
         }
         assembly.setRequiringComponent(lastValidComponent);
+        if (startingComponent instanceof CompositeComponent) {
+            assert assemblyStack.getFirst() instanceof Delegation;
+            ((Delegation) assemblyStack.getFirst()).setProvidesToComponent(lastValidComponent);
+        }
+        if (lastValidComponent instanceof ComponentConnection) {
+            assert assemblyStack.getLast() instanceof Delegation;
+            ((Delegation) assemblyStack.getLast()).setRequiresFromComponent(startingComponent);
+        }
         onEnd.run();
     }
 
@@ -148,7 +157,7 @@ public class AssemblyBuilder {
 
     private Side calculateSideOfPoint(Component component, Point2D point) {
         Point2D origin = ComponentTraverser.getSwitchedCoordinates(component, null);
-        double EPSILON = 0.1;
+        double EPSILON = 10;
         if (component.getRectangle().getWidth() + origin.getX() - EPSILON < point.getX() && point.getX() < component.getRectangle().getWidth() + origin.getX() + EPSILON) {
             return Side.RIGHT;
         }

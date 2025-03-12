@@ -71,22 +71,22 @@ public class DiagramFileUtils {
             if (providingNode instanceof ComponentConnection) {
                 assemblyJson.put("providingNodeSide", ((ComponentConnection) providingNode).getSide());
                 assemblyJson.put("providingNodePosition", providingNode.getEndPoint());
-            } else if (providingNode instanceof Delegates) {
-                assemblyJson.put("providingNodeSide", ((Delegates) providingNode).getSide());
+            } else if (providingNode instanceof Delegation) {
+                assemblyJson.put("providingNodeSide", ((Delegation) providingNode).getSide());
                 assemblyJson.put("providingNodePosition", providingNode.getStartPoint());
             }
             if (requiringNode instanceof ComponentConnection) {
                 assemblyJson.put("requiringNodeSide", ((ComponentConnection) requiringNode).getSide());
                 assemblyJson.put("requiringNodePosition", requiringNode.getStartPoint());
-            } else if (requiringNode instanceof Delegates) {
-                assemblyJson.put("requiringNodeSide", ((Delegates) requiringNode).getSide());
+            } else if (requiringNode instanceof Delegation) {
+                assemblyJson.put("requiringNodeSide", ((Delegation) requiringNode).getSide());
                 assemblyJson.put("requiringNodePosition", requiringNode.getStartPoint());
             }
             System.out.printf("Requiring node class: %s%n", requiringNode.getClass());
 
             JSONArray points = new JSONArray();
             assembly.getChildren().forEach(a -> {
-                if (a instanceof Assemblable && !(a instanceof Delegates) && !(a instanceof ComponentConnection)) {
+                if (a instanceof Assemblable && !(a instanceof Delegation) && !(a instanceof ComponentConnection)) {
                     points.put(new JSONObject().put("startX", ((Assemblable) a).getStartPoint().getX()).put("startY", ((Assemblable) a).getStartPoint().getY()).put("endX", ((Assemblable) a).getEndPoint().getX()).put("endY", ((Assemblable) a).getEndPoint().getY()));
                 }
             });
@@ -100,10 +100,10 @@ public class DiagramFileUtils {
     private static Assemblable getProvidingNode(Assembly assembly) {
         assert assembly.getChildren().getFirst() instanceof Assemblable;
         Assemblable first = (Assemblable) assembly.getChildren().getFirst();
-        if (first instanceof ComponentConnection || first instanceof Delegates) {
+        if (first instanceof ComponentConnection || first instanceof Delegation) {
             return first;
         } else {
-            if (first.getStart() != null && (first.getStart() instanceof ComponentConnection || first.getStart() instanceof Delegates)) {
+            if (first.getStart() != null && (first.getStart() instanceof ComponentConnection || first.getStart() instanceof Delegation)) {
                 return first.getStart();
             }
         }
@@ -113,10 +113,10 @@ public class DiagramFileUtils {
     private static Assemblable getRequiringNode(Assembly assembly) {
         assert assembly.getChildren().getLast() instanceof Assemblable;
         Assemblable last = (Assemblable) assembly.getChildren().getLast();
-        if (last instanceof ComponentConnection || last instanceof Delegates) {
+        if (last instanceof ComponentConnection || last instanceof Delegation) {
             return last;
         } else {
-            if (last.getEnd() != null && last.getEnd() instanceof ComponentConnection || last.getEnd() instanceof Delegates) {
+            if (last.getEnd() != null && last.getEnd() instanceof ComponentConnection || last.getEnd() instanceof Delegation) {
                 return last.getEnd();
             }
         }
@@ -183,7 +183,7 @@ public class DiagramFileUtils {
                 providingAssemblable = delegations.get(providingNodeId);
             } else {
                 if (providingComponent instanceof CompositeComponent) {
-                    providingAssemblable = new Delegates(providingComponent, firstPoint, ((JSONObject) a).getEnum(Side.class, "providingNodeSide"));
+                    providingAssemblable = new Delegation(providingComponent, firstPoint, ((JSONObject) a).getEnum(Side.class, "providingNodeSide"));
                 } else {
                     providingAssemblable = new ComponentConnection(providingComponent, ((JSONObject) a).getEnum(Side.class, "providingNodeSide"), firstPoint, InterfaceType.PROVIDES);
                 }
@@ -192,7 +192,7 @@ public class DiagramFileUtils {
                 requiringAssemblable = delegations.get(requiringNodeId);
             } else {
                 if (requiringComponent instanceof CompositeComponent) {
-                    requiringAssemblable = new Delegates(requiringComponent, lastPoint, ((JSONObject) a).getEnum(Side.class, "requiringNodeSide"));
+                    requiringAssemblable = new Delegation(requiringComponent, lastPoint, ((JSONObject) a).getEnum(Side.class, "requiringNodeSide"));
                 } else {
                     requiringAssemblable = new ComponentConnection(requiringComponent, ((JSONObject) a).getEnum(Side.class, "requiringNodeSide"), lastPoint, InterfaceType.REQUIRES);
                 }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="gui.components.assembly.components.DelegationOverlay"
+            fx:id="container"
+            stylesheets="@style/SelectedComponentOverlay.css"
+>
+    <center>
+        <FontIcon fx:id="icon" iconLiteral="ci-caret-up" iconSize="40" styleClass="arrow" fill="aqua"/>
+    </center>
+
+</BorderPane>

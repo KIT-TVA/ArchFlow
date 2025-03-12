@@ -4,7 +4,7 @@ import gui.components.assembly.Assemblable;
 import gui.components.assembly.components.Assembly;
 import gui.components.assembly.components.AssemblyLine;
 import gui.components.assembly.components.ComponentConnection;
-import gui.components.assembly.components.Delegates;
+import gui.components.assembly.components.Delegation;
 import javafx.geometry.Point2D;
 import javafx.geometry.Side;
 import javafx.scene.Group;
@@ -44,9 +44,9 @@ public class AssemblyEditor extends Group {
         return movablePoints;
     }
 
-    private MovablePoint movablePointFromDelegates(Delegates delegates) {
-        Point2D handlePosition = delegates.getEndPoint().midpoint(delegates.getStartPoint());
-        return new MovablePoint(handlePosition, HandleType.DELEGATES, delegates);
+    private MovablePoint movablePointFromDelegates(Delegation delegation) {
+        Point2D handlePosition = delegation.getEndPoint().midpoint(delegation.getStartPoint());
+        return new MovablePoint(handlePosition, HandleType.DELEGATES, delegation);
     }
 
     private MovablePoint movablePointFromComponentConnection(ComponentConnection componentConnection) {
@@ -102,13 +102,13 @@ public class AssemblyEditor extends Group {
                         // Should be a can't happen
                         break;
                     case DELEGATES:
-                        Delegates delegates = (Delegates) this.assemblable;
-                        Side side = delegates.getSide();
+                        Delegation delegation = (Delegation) this.assemblable;
+                        Side side = delegation.getSide();
                         if (side == Side.LEFT || side == Side.RIGHT) {
-                            delegates.moveSimple(new Point2D(0, pointDelta.getY()));
+                            delegation.moveSimple(new Point2D(0, pointDelta.getY()));
                             move(new Point2D(0, pointDelta.getY()));
                         } else {
-                            delegates.moveSimple(new Point2D(pointDelta.getX(), 0));
+                            delegation.moveSimple(new Point2D(pointDelta.getX(), 0));
                             move(new Point2D(pointDelta.getX(), 0));
                         }
                         break;
@@ -150,8 +150,8 @@ public class AssemblyEditor extends Group {
             if (a instanceof AssemblyLine) {
                 getChildren().addAll(movablePointsInAssemblyLine((AssemblyLine) a));
             }
-            if (a instanceof Delegates) {
-                getChildren().add(movablePointFromDelegates((Delegates) a));
+            if (a instanceof Delegation) {
+                getChildren().add(movablePointFromDelegates((Delegation) a));
             }
             if (a instanceof ComponentConnection) {
                 getChildren().add(movablePointFromComponentConnection((ComponentConnection) a));

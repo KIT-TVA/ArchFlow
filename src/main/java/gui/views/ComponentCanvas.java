@@ -4,6 +4,7 @@ import gui.Model;
 import gui.components.Component;
 import gui.components.SelectedComponentOverlay;
 import gui.components.assembly.components.Assembly;
+import gui.components.assembly.components.DelegationOverlay;
 import gui.components.assembly.util.AssemblyEditor;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -51,6 +52,13 @@ public class ComponentCanvas {
         pane.getChildren().add(overlay);
         this.overlay = overlay;
         overlay.setViewOrder(1);
+    }
+
+    public void draw(DelegationOverlay overlay) {
+        if (overlay != null) {
+            pane.getChildren().add(overlay);
+            overlay.setViewOrder(0);
+        }
     }
 
     public void draw(Assembly assembly) {
