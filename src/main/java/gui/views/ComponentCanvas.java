@@ -32,7 +32,7 @@ public class ComponentCanvas {
 
     public void draw(Component c) {
         boolean success = pane.getChildren().add(c.getContainer());
-        c.getContainer().setViewOrder(2);
+        c.getContainer().setViewOrder(1);
         if (!success) {
             //TODO handle case were adding the node fails
         }
@@ -40,6 +40,7 @@ public class ComponentCanvas {
 
     public void draw(AssemblyEditor assemblyEditor) {
         pane.getChildren().add(assemblyEditor);
+        assemblyEditor.setViewOrder(0);
     }
 
 
@@ -51,7 +52,7 @@ public class ComponentCanvas {
         }
         pane.getChildren().add(overlay);
         this.overlay = overlay;
-        overlay.setViewOrder(1);
+        overlay.setViewOrder(0);
     }
 
     public void draw(DelegationOverlay overlay) {
@@ -64,6 +65,7 @@ public class ComponentCanvas {
     public void draw(Assembly assembly) {
         if (assembly != null) {
             pane.getChildren().add(assembly);
+            assembly.setViewOrder(1);
         }
     }
 
