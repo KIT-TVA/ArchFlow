@@ -5,6 +5,7 @@ import gui.components.CompositeComponent;
 import gui.components.assembly.Assemblable;
 import gui.components.assembly.components.*;
 import gui.components.util.ComponentTraverser;
+import gui.components.util.Grid;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.geometry.Side;
@@ -51,7 +52,7 @@ public class AssemblyBuilder {
         }
         assembly.getChildren().add((Node) start);
         assemblyStack.add(start);
-        AssemblyLine startingLine = new AssemblyLine(start, start.getEndPoint());
+        ProvidesRequires startingLine = new ProvidesRequires(start, start.getEndPoint());
         start.setEnd(startingLine, startingLine.getStartPoint());
         assemblyStack.add(startingLine);
         assembly.getChildren().add(startingLine);
@@ -66,7 +67,7 @@ public class AssemblyBuilder {
     public void mouseoverComponent(Component component, Point2D mousePosition) {
         Point2D snappedPoint = getNearestGridPosition(mousePosition);
 
-        assert (assemblyStack.getLast() instanceof AssemblyLine);
+        assert (assemblyStack.getLast() instanceof AssemblyLine || assemblyStack.getLast() instanceof ProvidesRequires);
         if (currentHoverComponent != component) {
             currentHoverComponent = component;
         }
@@ -174,13 +175,6 @@ public class AssemblyBuilder {
         }
     }
 
-    private static Point2D getNearestGridPosition(Point2D point) {
-        final int GRID_SIZE = 10;
-        double snappedX = ((int) Math.round(point.getX() / GRID_SIZE)) * GRID_SIZE;
-        double snappedY = ((int) Math.round(point.getY() / GRID_SIZE)) * GRID_SIZE;
-        return new Point2D(snappedX, snappedY);
-    }
-
     //The next three math intensive methods are AI generated.
     private static Point2D getIntersection(Rectangle2D rect, Point2D lineStart, Point2D lineEnd) {
         // Define the rectangle edges
@@ -226,6 +220,11 @@ public class AssemblyBuilder {
 
     private static boolean isPointOnSegment(Point2D p1, Point2D p2, Point2D p) {
         return (Math.min(p1.getX(), p2.getX()) <= p.getX() && p.getX() <= Math.max(p1.getX(), p2.getX())) && (Math.min(p1.getY(), p2.getY()) <= p.getY() && p.getY() <= Math.max(p1.getY(), p2.getY()));
+    }
+
+    private Point2D getNearestGridPosition(Point2D point) {
+        Grid grid = new Grid(5);
+        return grid.getNearestGridPosition(point);
     }
 
 

@@ -12,6 +12,7 @@ import javafx.scene.shape.Rectangle;
 import java.util.Collection;
 import java.util.Optional;
 
+
 public class ComponentMover {
     private final ComponentCanvas canvas;
     private final Collection<Component> rootComponents;
@@ -40,24 +41,15 @@ public class ComponentMover {
         scene_x = event.getX();
         scene_y = event.getY();
         firstMove = true;
-        if (first_click) {
-            first_click = false;
-        } else {
-            first_click = true;
-        }
+        first_click = !first_click;
     }
 
     public void mouseDownComponent(MouseEvent event) {
         Pane rect = component.getContainer();
         resizeMode = false;
         rect.toFront();
-        scene_x = event.getSceneX();
-        scene_y = event.getSceneY();
-        if (first_click) {
-            first_click = false;
-        } else {
-            first_click = true;
-        }
+        saveLastPoint(event);
+        first_click = !first_click;
     }
 
     public void mouseDraggedComponent(MouseEvent event) {
@@ -94,36 +86,42 @@ public class ComponentMover {
         Pane container = component.getContainer();
         Rectangle rect = component.getRectangle();
         if (firstMove) {
-            scene_x = e.getSceneX();
-            scene_y = e.getSceneY();
+            saveLastPoint(e);
             firstMove = false;
         }
         switch (direction) {
             case LEFT:
-                container.setLayoutX(container.getLayoutX() + (e.getSceneX() - scene_x));
-                rect.setWidth(rect.getWidth() - (e.getSceneX() - scene_x));
+                container.setLayoutX(getNearestGridPosition(container.getLayoutX() + (e.getSceneX() - scene_x)));
+                rect.setWidth(getNearestGridPosition(rect.getWidth() - (e.getSceneX() - scene_x)));
                 break;
             case RIGHT:
-                rect.setWidth(rect.getWidth() + e.getSceneX() - scene_x);
+                rect.setWidth(getNearestGridPosition(rect.getWidth() + e.getSceneX() - scene_x));
                 break;
             case TOP:
-                container.setLayoutY(container.getLayoutY() + (e.getSceneY() - scene_y));
-                rect.setHeight(rect.getHeight() - (e.getSceneY() - scene_y));
+                container.setLayoutY(getNearestGridPosition(container.getLayoutY() + (e.getSceneY() - scene_y)));
+                rect.setHeight(getNearestGridPosition(rect.getHeight() - (e.getSceneY() - scene_y)));
                 break;
             case BOTTOM:
-                rect.setHeight(rect.getHeight() + e.getSceneY() - scene_y);
+                rect.setHeight(getNearestGridPosition(rect.getHeight() + e.getSceneY() - scene_y));
                 break;
         }
-        scene_x = e.getSceneX();
-        scene_y = e.getSceneY();
+        saveLastPoint(e);
+    }
+
+    private void saveLastPoint(MouseEvent e) {
+        if (getNearestGridPosition(e.getSceneX() - scene_x) != 0) {
+            scene_x = getNearestGridPosition(e.getSceneX());
+        }
+        if (getNearestGridPosition(e.getSceneY() - scene_y) != 0) {
+            scene_y = getNearestGridPosition(e.getSceneY());
+        }
     }
 
     private void dragComponent(MouseEvent e, Component component) {
-        component.getContainer().setLayoutX(component.getContainer().getLayoutX() + e.getSceneX() - scene_x);
-        component.getContainer().setLayoutY(component.getContainer().getLayoutY() + e.getSceneY() - scene_y);
-        moveAssemblables(component, new Point2D(e.getSceneX() - scene_x, e.getSceneY() - scene_y));
-        scene_x = e.getSceneX();
-        scene_y = e.getSceneY();
+        component.getContainer().setLayoutX(getNearestGridPosition(component.getContainer().getLayoutX() + e.getSceneX() - scene_x));
+        component.getContainer().setLayoutY(getNearestGridPosition(component.getContainer().getLayoutY() + e.getSceneY() - scene_y));
+        moveAssemblables(component, getNearestGridPosition(new Point2D(e.getSceneX() - scene_x, e.getSceneY() - scene_y)));
+        saveLastPoint(e);
     }
 
     private void moveAssemblables(Component component, Point2D vector) {
@@ -153,5 +151,15 @@ public class ComponentMover {
                 }
             }
         }
+    }
+
+    private Point2D getNearestGridPosition(Point2D point) {
+        Grid grid = new Grid(10);
+        return grid.getNearestGridPosition(point);
+    }
+
+    private double getNearestGridPosition(double value) {
+        Grid grid = new Grid(10);
+        return grid.getNearestGridPosition(value);
     }
 }

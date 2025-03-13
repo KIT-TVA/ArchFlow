@@ -30,6 +30,11 @@ public class AssemblyLine extends Line implements Assemblable {
         setStartY(startPoint.getY());
     }
 
+    public AssemblyLine(Point2D startPoint, Point2D endPoint) {
+        setStart(null, startPoint);
+        setEnd(null, endPoint);
+    }
+
     public AssemblyLine(Assemblable start, Assemblable end) {
         this.start = start;
         this.startPoint = start.getEndPoint();
