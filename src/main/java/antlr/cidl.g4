@@ -2,7 +2,7 @@ grammar cidl;
 
 component: COMPONENT NAME IMPLEMENTS NAME
 list_subcomponents
-interface_provided
+interface_provided?
 interface_required?
 assembly*
 delegation*;
