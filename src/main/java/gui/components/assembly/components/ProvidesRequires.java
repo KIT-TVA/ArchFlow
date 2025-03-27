@@ -54,18 +54,20 @@ public class ProvidesRequires extends Parent implements Assemblable {
     private void reAdjustPosition() {
         double angle = Math.toDegrees(Math.atan2(endPoint.getY() - startPoint.getY(), endPoint.getX() - startPoint.getX()));;
         Point2D midPoint = startPoint.midpoint(endPoint);
-        double adjustedAngle = 0 <= angle && angle <= 180? angle : 360 - angle;
-        Point2D newConnectionPoint = Transform.rotate(angle, midPoint.getX(), midPoint.getY()).transform(midPoint.getX() - 0.5 * connection.getWidth(), midPoint.getY() - 0.5 * connection.getHeight());
-        Point2D offset = new Point2D(Math.sin(Math.toRadians(adjustedAngle)) * connection.getWidth() / 2, Math.cos(Math.toRadians(adjustedAngle)) * connection.getHeight() / 2);
-        group.setLayoutX(newConnectionPoint.getX());
-        group.setLayoutY(newConnectionPoint.getY());
-        group.setRotate(angle);
+        group.setLayoutX(startPoint.getX() + startPoint.distance(midPoint));
+        group.setLayoutY(startPoint.getY() - connection.getHeight() / 2);
+        group.getTransforms().setAll(Transform.rotate(angle, - startPoint.distance(midPoint), connection.getHeight() / 2));
     }
 
     @Override
     public void setStart(Assemblable assembly, Point2D point) {
         start = assembly;
+        Point2D midpoint = point.midpoint(endPoint);
+        Point2D normalizedVector = endPoint.subtract(point).normalize();
+        Point2D midpointEnd = midpoint.add(normalizedVector.multiply(connection.getWidth()));
         provides.setStart(assembly, point);
+        provides.setEnd(requires, midpoint);
+        requires.setStart(provides, midpointEnd);
         startPoint = point;
         reAdjustPosition();
     }
@@ -74,7 +76,12 @@ public class ProvidesRequires extends Parent implements Assemblable {
     public void setEnd(Assemblable assembly, Point2D point) {
         end = assembly;
         endPoint = point;
+        Point2D midpoint = point.midpoint(startPoint);
+        Point2D normalizedVector = point.subtract(startPoint).normalize();
+        Point2D midpointEnd = midpoint.add(normalizedVector.multiply(connection.getWidth()));
         requires.setEnd(assembly, point);
+        requires.setStart(provides, midpointEnd);
+        provides.setEnd(requires, midpoint);
         reAdjustPosition();
     }
 

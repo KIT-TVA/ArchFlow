@@ -227,8 +227,10 @@ public class DiagramFileUtils {
         Map<Integer, Component> components = getComponents(json.getJSONArray("components"));
         Collection<Assembly> assemblies = getAssemblies(json.getJSONArray("assemblies"), components);
         Model model = new Model();
-        model.components = components.values().stream().toList();
-        model.assemblies = assemblies.stream().toList();
+        model.components = new ArrayList<>();
+        model.components.addAll(components.values().stream().toList());
+        model.assemblies = new ArrayList<>();
+        model.assemblies.addAll(assemblies.stream().toList());
         return model;
     }
 

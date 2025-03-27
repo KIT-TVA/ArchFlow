@@ -27,6 +27,7 @@ public class ViewController {
                 }
             });
             model.assemblies.forEach(canvas::draw);
+            eventDispatcher = new InteractionEventDispatcher(mainLayout, model);
         });
 
         //Set Events on non-changing components
